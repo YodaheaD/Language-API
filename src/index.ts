@@ -1,0 +1,34 @@
+import express, { Express, Request, Response } from 'express';
+import cors from "cors";
+import Logger from './utils/logger';
+import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
+dotenv.config();
+const app:Express = express();
+
+
+import { router as pageRouter } from './page';
+import { router as utilsRouter }  from './utilRouter/page';
+//src\ops\page.ts
+import { router as opsRouter }  from './ops/page';
+// src\setRouter\page.ts
+import { router as setRouter }  from './setRouter/page';
+app.use(express.static('public'));
+//const PORT = process.env.PORT;
+app.use(cookieParser());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
+
+
+app.use('/data', pageRouter);
+app.use('/utils', utilsRouter);
+app.use('/ops', opsRouter);
+app.use('/sets', setRouter);
+app.get('/', (req:Request, res:Response) => {
+    res.send("Hello from Express Api")
+})
+
+app.listen(3001, () => {
+    Logger.info(`Server running on port  3001`);
+ }) 
