@@ -53,8 +53,30 @@ export class LangaugeClass {
     }
   };
 
-  // Get random set of data ( for quizes )
-  // Params: NumOfItems
+  // Returns the size of the table
+  /**
+   * SQL Example: table "langtable1"
+   * "SELECT COUNT(*) as count FROM langtable1"
+   */
+  public getTableSizeSQL = async () => {
+    try {
+      const [rows] = await pool.query(
+        `SELECT COUNT(*) as count FROM ${this.tableName}`
+      );
+      const count = (rows as any)[0].count;
+      Logger.info(`Fetched table size from SQL table: ${this.tableName}`);
+      return count;
+    } catch (err) {
+      Logger.error(`Database query failed for table ${this.tableName}: ${err}`);
+      throw err;
+    }
+  };
+
+  // Returns random set of data from the table
+  /**
+   * SQL Example: table "langtable1" , numOfItems 3
+   * "SELECT * FROM langtable1 ORDER BY RAND() LIMIT 3"
+   */
   getRandomDataSQL = async (numOfItems: number) => {
     try {
       const [rows] = await pool.query(

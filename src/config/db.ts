@@ -1,10 +1,10 @@
 import mysql from 'mysql2/promise';
 
 export const pool = mysql.createPool({
-  host: 'localhost',     // Your MySQL host
-  user: 'root',          // Your MySQL username
-  password: 'Wardell3030!', // Your MySQL password
-  database: 'sys', // The database name
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_DATABASE || 'langappdb',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,

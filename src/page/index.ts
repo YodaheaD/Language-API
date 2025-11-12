@@ -57,6 +57,24 @@ router.get("/fetch/:lang", async (req, res) => {
   }
 });
 
+// GET - Get the size of the language table
+router.get("/fetchSize/:lang", async (req, res) => {
+  const { lang } = req.params;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  try {
+    const languageClass = getLanguageClass(lang);
+    const size = await languageClass.getTableSizeSQL();
+    res.json({ size });
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("Invalid language")) {
+      return res.status(400).json({ message: err.message });
+    }
+    console.error("Database query failed:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 // GET - Get random set of language data from SQL
 // Params: numOfItems, lang
 router.get("/random/:lang", async (req, res) => {

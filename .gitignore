@@ -3,3 +3,6 @@ node_modules
 src/*/*.js
 package-lock.json
 data
+src/utils/scripts
+notes
+docs

@@ -3,3 +3,5 @@ interface BasicEntry {
   word: string;
   definition: string;
 }
+
+export const validLanguages = ["spanish", "japanese"] as const;
