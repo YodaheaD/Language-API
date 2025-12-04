@@ -9,6 +9,8 @@ import NodeCache from "node-cache";
 import { pool } from "../config/db";
 import dotenv from "dotenv";
 import fs from "fs";
+import { ResultSetHeader } from "mysql2";
+
 dotenv.config();
 
 export class SetsClass {
@@ -94,7 +96,7 @@ export class SetsClass {
       const MM_DD_YYYY = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
       // Use MM_DD_YYYY for dateCreated and dateModified and dont use CURDATE() in SQL
       
-      const [result] = await pool.query(
+      const [result] = await pool.query<ResultSetHeader>(
         `INSERT INTO ${this.tableSetName} (langOfSet, setName, setFolder, description, dateCreated, dateModified) VALUES (?, ?, ?, ?, ?, ?)`,
         [this.languageOfSet, setName, setFolder, description, MM_DD_YYYY, MM_DD_YYYY]
       );

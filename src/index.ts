@@ -7,7 +7,7 @@ dotenv.config();
 const app:Express = express();
 
 
-import { router as pageRouter } from './page';
+import { router as pageRouter } from './data';
 import { router as utilsRouter }  from './utilRouter/page';
 //src\ops\page.ts
 import { router as opsRouter }  from './ops/page';
