@@ -2,7 +2,7 @@ node_modules
 *.js
 src/*/*.js
 package-lock.json
-data
+manualdata
 src/utils/scripts
 notes
 docs
