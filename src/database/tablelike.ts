@@ -6,22 +6,22 @@
 
 import Logger from "../utils/logger";
 import NodeCache from "node-cache";
-import { pool } from "../config/db";
+import { getPool } from "../config/db";
 import dotenv from "dotenv";
 import fs from "fs";
+
 dotenv.config();
 
 export class LangaugeClass {
-  constructor(public tableName: string, public data: any[] = []) {
-    // this.cacheName = name + "Cache";
-  }
+  constructor(public tableName: string, public data: any[] = []) {}
 
   /**
-   * Direct database access (private method)
+   * Direct database access
    * SQL Example: "SELECT * FROM spanish"
    */
   public getAllDataSQL = async () => {
     try {
+      const pool = await getPool();
       const [rows] = await pool.query(`SELECT * FROM ${this.tableName}`);
       Logger.info(`Fetched all data from SQL table: ${this.tableName}`);
       return rows;
@@ -31,14 +31,15 @@ export class LangaugeClass {
     }
   };
 
-  // Paginated data fetch
   /**
-   * SQL Example: table "langtable1" , page 2, pageSize 5
+   * Paginated data fetch
+   * SQL Example:
    * "SELECT * FROM langtable1 LIMIT 5 OFFSET 5"
    */
-  getPaginatedDataSQL = async (page: number, pageSize: number) => {
+  public getPaginatedDataSQL = async (page: number, pageSize: number) => {
     const offset = (page - 1) * pageSize;
     try {
+      const pool = await getPool();
       const [rows] = await pool.query(
         `SELECT * FROM ${this.tableName} LIMIT ? OFFSET ?`,
         [pageSize, offset]
@@ -53,13 +54,14 @@ export class LangaugeClass {
     }
   };
 
-  // Returns the size of the table
   /**
-   * SQL Example: table "langtable1"
+   * Returns the size of the table
+   * SQL Example:
    * "SELECT COUNT(*) as count FROM langtable1"
    */
   public getTableSizeSQL = async () => {
     try {
+      const pool = await getPool();
       const [rows] = await pool.query(
         `SELECT COUNT(*) as count FROM ${this.tableName}`
       );
@@ -72,13 +74,14 @@ export class LangaugeClass {
     }
   };
 
-  // Returns random set of data from the table
   /**
-   * SQL Example: table "langtable1" , numOfItems 3
+   * Returns random rows from table
+   * SQL Example:
    * "SELECT * FROM langtable1 ORDER BY RAND() LIMIT 3"
    */
-  getRandomDataSQL = async (numOfItems: number) => {
+  public getRandomDataSQL = async (numOfItems: number) => {
     try {
+      const pool = await getPool();
       const [rows] = await pool.query(
         `SELECT * FROM ${this.tableName} ORDER BY RAND() LIMIT ?`,
         [numOfItems]
@@ -93,17 +96,14 @@ export class LangaugeClass {
     }
   };
 
-  /** Maintenance Routes */
-  // For the CRUD operations on the Table
-
-  // Create an entry in the Table
-  // Params: word , definition
   /**
-   * SQL Example: the word is "hola" and definition is "hello" for table "spanish"
+   * Insert a single entry
+   * SQL Example:
    * "INSERT INTO spanish (word, definition) VALUES ('hola', 'hello')"
    */
-  addEntryToTable = async (word: string, definition: string) => {
+  public addEntryToTable = async (word: string, definition: string) => {
     try {
+      const pool = await getPool();
       const query = `INSERT INTO ${this.tableName} (word, definition) VALUES (?, ?)`;
       await pool.query(query, [word, definition]);
       Logger.info(
@@ -115,54 +115,44 @@ export class LangaugeClass {
     }
   };
 
-  // Create multiple entries in the Table
-  // Params: array of {word, definition}
   /**
-   * SQL Example: the word is "hola" and definition is "hello" for table "spanish"
-   * "INSERT INTO spanish (word, definition) VALUES ('hola', 'hello')"
+   * Bulk insert entries
    */
-addMultipleEntriesToTable = async (entries: { word: string; definition: string }[]) => {
-  try {
-    if (!entries.length) return 0; // nothing to insert
+  public addMultipleEntriesToTable = async (
+    entries: { word: string; definition: string }[]
+  ) => {
+    try {
+      if (!entries.length) return 0;
 
-    const query = `INSERT INTO ${this.tableName} (word, definition) VALUES ?`;
+      const pool = await getPool();
+      const query = `INSERT INTO ${this.tableName} (word, definition) VALUES ?`;
+      const values = entries.map((e) => [e.word, e.definition]);
 
-    // Prepare the array of values
-    const values = entries.map(entry => [entry.word, entry.definition]);
+      const [result] = await pool.query(query, [values]);
+      const affectedRows = (result as any).affectedRows;
 
-    // Execute the bulk insert
-    const [result] = await pool.query(query, [values]);
+      Logger.info(
+        `Added ${affectedRows} entries to table ${this.tableName}.`
+      );
 
-    // result.affectedRows tells you how many rows were inserted
-    const affectedRows = (result as any).affectedRows;
+      return affectedRows;
+    } catch (err) {
+      Logger.error(`Failed to add entries to table ${this.tableName}: ${err}`);
+      throw err;
+    }
+  };
 
-    Logger.info(
-      `Added ${affectedRows} entries to table ${this.tableName}.`
-    );
-
-    return affectedRows;
-  } catch (err) {
-    Logger.error(`Failed to add entries to table ${this.tableName}: ${err}`);
-    throw err;
-  }
-};
-
-
-  // Remove Entry from Table
-  // Given word, delete that entry
-  // Params : word
   /**
-   * SQL Example: We want to remove the word: "testWord1" from table "spanish"
+   * Delete entry by word
+   * SQL Example:
    * "DELETE FROM spanish WHERE word = 'testWord1'"
    */
-  removeEntryFromTable = async (word: string) => {
+  public removeEntryFromTable = async (word: string) => {
     try {
+      const pool = await getPool();
       const query = `DELETE FROM ${this.tableName} WHERE word = ?`;
-      // Capture the result
       const [result] = await pool.query(query, [word]);
 
-      // result is of type OkPacket in mysql2
-      // affectedRows tells you how many rows were deleted
       const affectedRows = (result as any).affectedRows;
 
       if (affectedRows > 0) {
@@ -174,7 +164,6 @@ addMultipleEntriesToTable = async (entries: { word: string; definition: string }
           `No entry found to delete in table ${this.tableName} for word: ${word}`
         );
       }
-     
     } catch (err) {
       Logger.error(
         `Failed to remove entry from table ${this.tableName}: ${err}`
@@ -182,24 +171,4 @@ addMultipleEntriesToTable = async (entries: { word: string; definition: string }
       throw err;
     }
   };
-
-  // // Add Column to current Table
-  // addColumn = async (columnName: string, dataType: string) => {
-  //   if (!allowColumnNames.includes(columnName)) {
-  //     throw new Error(`Column name ${columnName} is not allowed.`);
-  //   }
-
-  //   try {
-  //     const query = `ALTER TABLE ${this.tableName} ADD COLUMN ${columnName} ${dataType}`;
-  //     await pool.query(query);
-  //     Logger.info(
-  //       `Added column ${columnName} to table ${this.tableName} with data type ${dataType}`
-  //     );
-  //   } catch (err) {
-  //     Logger.error(
-  //       `Failed to add column ${columnName} to table ${this.tableName}: ${err}`
-  //     );
-  //     throw err;
-  //   }
-  // };
 }

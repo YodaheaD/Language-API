@@ -7,3 +7,5 @@ src/utils/scripts
 notes
 docs
 .env
+scripts
+oracle_bastion_key
