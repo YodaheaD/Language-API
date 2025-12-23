@@ -8,5 +8,5 @@ export const spanishClass = new LangaugeClass(
 );
 
 export const japClass = new LangaugeClass(
-    "japaneseTable",
+    "japanesetable",
 );
