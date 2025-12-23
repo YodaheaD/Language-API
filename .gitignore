@@ -9,3 +9,4 @@ docs
 .env
 scripts
 oracle_bastion_key
+*.ppk
