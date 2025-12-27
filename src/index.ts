@@ -104,6 +104,7 @@ app.post("/logout", (req, res) => {
 
 // Middleware to protect routes
 function requireAuth(req: Request, res: Response, next: Function) {
+    console.log(` Requestion info: ${JSON.stringify(req)}`);
   if (!req.session.userId) {
     return res.status(401).json({ error: "Unauthorized" });
   }
