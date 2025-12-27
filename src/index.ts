@@ -24,8 +24,21 @@ declare module "express-session" {
   }
 }
 
-app.set("trust proxy", true);
+// 1️⃣ Trust proxy first (needed for secure cookies behind NGINX)
+app.set("trust proxy", 1); // or true
 
+// 2️⃣ CORS must come before routes so preflight requests work
+app.use(
+  cors({
+    origin: "https://www.yodaslanguageapp.com",
+    credentials: true, // allow cookies
+  })
+);
+
+// 3️⃣ Parse cookies before session middleware
+app.use(cookieParser());
+
+// 4️⃣ Session middleware comes next
 app.use(
   session({
     name: "yodas-session",
@@ -40,55 +53,43 @@ app.use(
   })
 );
 
-app.use(express.static("public"));
-//const PORT = process.env.PORT;
-app.use(cookieParser());
+// 5️⃣ Body parsers for JSON and URL-encoded forms
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: "https://www.yodaslanguageapp.com",
-  credentials: true
-}));
+
+// 6️⃣ Serve static files last (optional, after parsing and sessions)
+app.use(express.static("public"));
 
 /** Login Route */
 
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
-  console.log(` Startign login process for user`);
-  if (!username || !password) {
+  if (!username || !password)
     return res.status(400).json({ error: "Username and password required" });
-  }
-
-  console.log("Attempting login for user:", username);
+  console.log("Login attempt for user:", username);
   const pool = await getPool();
   const result = (await pool.query("SELECT * FROM users WHERE username = ?", [
     username,
   ])) as any[];
 
-  if (!result.length) {
+  if (!result.length)
     return res.status(401).json({ error: "Invalid credentials" });
-  }
 
   const user = result[0];
 
-  if (!user[0].password_hash) {
-    // catch empty/null password hash
-    return res.status(500).json({ error: "User password not set, you need to set your password" });
-  }
+  if (!user.password_hash)
+    return res.status(500).json({ error: "User password not set" });
 
   try {
-    const valid = await bcrypt.compare(password, user[0].password_hash);
-
-    if (!valid) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-    console.log("User authenticated:", username);
+    const valid = await bcrypt.compare(password, user.password_hash);
+    if (!valid) return res.status(401).json({ error: "Invalid credentials" });
   } catch (err) {
     console.error("Bcrypt compare error:", err);
     return res.status(500).json({ error: "Internal server error" });
   }
 
   req.session.userId = user.id;
+  console.log("User authenticated, session set:", req.session);
   res.json({ success: true });
 });
 
@@ -104,7 +105,7 @@ app.post("/logout", (req, res) => {
 
 // Middleware to protect routes
 function requireAuth(req: Request, res: Response, next: Function) {
-    console.log(` Requesting info: ${req}`);
+  console.log(` Requesting info: ${req.session}`);
   if (!req.session.userId) {
     return res.status(401).json({ error: "Unauthorized" });
   }
@@ -112,8 +113,8 @@ function requireAuth(req: Request, res: Response, next: Function) {
 }
 // Test secure route
 app.get("/test/secure", requireAuth, (req, res) => {
-    // console log th request information
-    console.log("Secure route accessed by userId:", req)
+  // console log th request information
+  console.log("Secure route accessed by userId:", req);
   res.json({ secret: "You are logged in" });
 });
 /**
