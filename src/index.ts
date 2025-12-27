@@ -77,11 +77,12 @@ app.post("/login", async (req, res) => {
 
   const user = result[0];
 
-  if (!user.password_hash)
+  if (!user[0].password_hash)
     return res.status(500).json({ error: "User password not set" });
 
+  console.log("Full user is :", user);
   try {
-    const valid = await bcrypt.compare(password, user.password_hash);
+    const valid = await bcrypt.compare(password, user[0].password_hash);
     if (!valid) return res.status(401).json({ error: "Invalid credentials" });
   } catch (err) {
     console.error("Bcrypt compare error:", err);
