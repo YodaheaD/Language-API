@@ -95,7 +95,7 @@ app.post("/login", async (req, res) => {
   }
 
   const user = result[0];
-
+console.log("User found:", user);
   if (!user.password_hash) {
     // catch empty/null password hash
     return res.status(500).json({ error: "User password not set" });
