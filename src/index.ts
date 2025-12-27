@@ -89,7 +89,7 @@ app.post("/login", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 
-  req.session.userId = user.id;
+  req.session.userId = user[0].id;
   console.log("User authenticated, session set:", req.session);
   res.json({ success: true });
 });
