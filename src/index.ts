@@ -49,39 +49,11 @@ app.use(cors());
 
 /** Login Route */
 
-// app.post("/login", async (req, res) => {
-//   const { username, password } = req.body;
-
-//   console.log("Login attempt for user:", username);
-//   const pool = await getPool();
-//   const user = (await pool.query("SELECT * FROM users WHERE username = ?", [
-//     username,
-//   ])) as any[];
-
-//   if (!user.length) {
-//     return res.status(401).json({ error: "Invalid credentials" });
-//   }
-//   console.log("User found:", user[0]);
-
-//   const valid = await bcrypt.compare(password, user[0].password_hash);
-//   if (!valid) {
-//     return res.status(401).json({ error: "Invalid credentials" });
-//   }
-
-//   req.session.userId = user[0].id;
-//   res.json({ success: true });
-// });
-
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
     return res.status(400).json({ error: "Username and password required" });
-  }
-  // make sure sessionSecret is set
-  if (!sessionSecret) {
-    console.error("Session secret is not set");
-    return res.status(500).json({ error: "Internal server error" });
   }
 
   const pool = await getPool();
@@ -93,9 +65,10 @@ app.post("/login", async (req, res) => {
   if (!result.length) {
     return res.status(401).json({ error: "Invalid credentials" });
   }
+  console.log("Result is:", result);
 
   const user = result[0];
-console.log("User found:", user);
+
   if (!user.password_hash) {
     // catch empty/null password hash
     return res.status(500).json({ error: "User password not set" });
