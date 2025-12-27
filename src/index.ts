@@ -51,16 +51,16 @@ app.use(cors());
 
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
-
+  console.log(` Startign login process for user`);
   if (!username || !password) {
     return res.status(400).json({ error: "Username and password required" });
   }
 
+  console.log("Attempting login for user:", username);
   const pool = await getPool();
-  const result = (await pool.query(
-    "SELECT * FROM users WHERE username = ?",
-    [username]
-  )) as any[];
+  const result = (await pool.query("SELECT * FROM users WHERE username = ?", [
+    username,
+  ])) as any[];
 
   if (!result.length) {
     return res.status(401).json({ error: "Invalid credentials" });
