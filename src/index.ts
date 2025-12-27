@@ -49,26 +49,70 @@ app.use(cors());
 
 /** Login Route */
 
+// app.post("/login", async (req, res) => {
+//   const { username, password } = req.body;
+
+//   console.log("Login attempt for user:", username);
+//   const pool = await getPool();
+//   const user = (await pool.query("SELECT * FROM users WHERE username = ?", [
+//     username,
+//   ])) as any[];
+
+//   if (!user.length) {
+//     return res.status(401).json({ error: "Invalid credentials" });
+//   }
+//   console.log("User found:", user[0]);
+
+//   const valid = await bcrypt.compare(password, user[0].password_hash);
+//   if (!valid) {
+//     return res.status(401).json({ error: "Invalid credentials" });
+//   }
+
+//   req.session.userId = user[0].id;
+//   res.json({ success: true });
+// });
+
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
-  console.log("Login attempt for user:", username);
+  if (!username || !password) {
+    return res.status(400).json({ error: "Username and password required" });
+  }
+  // make sure sessionSecret is set
+  if (!sessionSecret) {
+    console.error("Session secret is not set");
+    return res.status(500).json({ error: "Internal server error" });
+  }
+
   const pool = await getPool();
-  const user = (await pool.query("SELECT * FROM users WHERE username = ?", [
-    username,
-  ])) as any[];
+  const result = (await pool.query(
+    "SELECT * FROM users WHERE username = ?",
+    [username]
+  )) as any[];
 
-  if (!user.length) {
-    return res.status(401).json({ error: "Invalid credentials" });
-  }
-  console.log("User found:", user[0]);
-
-  const valid = await bcrypt.compare(password, user[0].password_hash);
-  if (!valid) {
+  if (!result.length) {
     return res.status(401).json({ error: "Invalid credentials" });
   }
 
-  req.session.userId = user[0].id;
+  const user = result[0];
+
+  if (!user.password_hash) {
+    // catch empty/null password hash
+    return res.status(500).json({ error: "User password not set" });
+  }
+
+  try {
+    const valid = await bcrypt.compare(password, user.password_hash);
+
+    if (!valid) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+  } catch (err) {
+    console.error("Bcrypt compare error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+
+  req.session.userId = user.id;
   res.json({ success: true });
 });
 
