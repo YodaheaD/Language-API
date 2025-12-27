@@ -71,7 +71,7 @@ app.post("/login", async (req, res) => {
 
   if (!user.password_hash) {
     // catch empty/null password hash
-    return res.status(500).json({ error: "User password not set" });
+    return res.status(500).json({ error: "User password not set, you need to set your password" });
   }
 
   try {
