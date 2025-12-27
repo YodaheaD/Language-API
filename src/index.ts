@@ -52,6 +52,7 @@ app.use(cors());
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
+  console.log("Login attempt for user:", username);
   const pool = await getPool();
   const user = (await pool.query("SELECT * FROM users WHERE username = ?", [
     username,
@@ -60,6 +61,7 @@ app.post("/login", async (req, res) => {
   if (!user.length) {
     return res.status(401).json({ error: "Invalid credentials" });
   }
+  console.log("User found:", user[0]);
 
   const valid = await bcrypt.compare(password, user[0].password_hash);
   if (!valid) {
