@@ -45,7 +45,10 @@ app.use(express.static("public"));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cors({
+  origin: "https://www.yodaslanguageapp.com",
+  credentials: true
+}));
 
 /** Login Route */
 
