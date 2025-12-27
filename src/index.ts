@@ -68,7 +68,6 @@ app.post("/login", async (req, res) => {
   if (!result.length) {
     return res.status(401).json({ error: "Invalid credentials" });
   }
-  console.log("Result is:", result);
 
   const user = result[0];
 
@@ -83,6 +82,7 @@ app.post("/login", async (req, res) => {
     if (!valid) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
+    console.log("User authenticated:", username);
   } catch (err) {
     console.error("Bcrypt compare error:", err);
     return res.status(500).json({ error: "Internal server error" });
