@@ -111,6 +111,8 @@ function requireAuth(req: Request, res: Response, next: Function) {
 }
 // Test secure route
 app.get("/test/secure", requireAuth, (req, res) => {
+    // console log th request information
+    console.log("Secure route accessed by userId:", req)
   res.json({ secret: "You are logged in" });
 });
 /**
