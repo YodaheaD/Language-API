@@ -115,7 +115,7 @@ function requireAuth(req: Request, res: Response, next: Function) {
 // Test secure route
 app.get("/test/secure", requireAuth, (req, res) => {
   // console log th request information
-  console.log("Secure route accessed by userId:", req);
+  console.log("Secure route accessed by userId")
   res.json({ secret: "You are logged in" });
 });
 
@@ -142,8 +142,10 @@ app.get("/session-check", (req, res) => {
 });
  */
 
+/* Protected Routes */
+app.use("/data", requireAuth, pageRouter);
+
 /* Non-Auth Routes */
-app.use("/data", pageRouter);
 app.use("/utils", utilsRouter);
 app.use("/ops", opsRouter);
 app.use("/sets", setRouter);
