@@ -164,16 +164,20 @@ export class SetsClass {
       (rows as any[]).forEach((row) => {
         const folder = row.setFolder;
         const folderLang = row.langOfSet;
+        
+        // Create a unique key combining folder and language to handle
+        // cases where the same folder name exists for multiple languages
+        const folderKey = `${folder}_${folderLang}`;
 
-        if (!formattedData[folder]) {
-          formattedData[folder] = {
+        if (!formattedData[folderKey]) {
+          formattedData[folderKey] = {
             folder,
             langOfSet: folderLang,
             sets: [],
           };
         }
 
-        formattedData[folder].sets.push({
+        formattedData[folderKey].sets.push({
           setName: row.setName,
           description: row.description,
           dateCreated: row.dateCreated,
