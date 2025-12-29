@@ -106,7 +106,7 @@ app.post("/logout", (req, res) => {
 
 // Middleware to protect routes
 function requireAuth(req: Request, res: Response, next: Function) {
-  console.log(` Requesting info: ${req.session}`);
+  console.log(` Requesting info: ${JSON.stringify(req.session)}`);
   if (!req.session.userId) {
     return res.status(401).json({ error: "Unauthorized" });
   }
@@ -118,6 +118,22 @@ app.get("/test/secure", requireAuth, (req, res) => {
   console.log("Secure route accessed by userId:", req);
   res.json({ secret: "You are logged in" });
 });
+
+// Session check
+/**
+ * Need to retrn:  res.json({ 
+      authenticated: true, 
+      userId: req.session.userId 
+    }); to user if authenticated
+ */
+app.get("/session-check", (req, res) => {
+  if (req.session.userId) {
+    res.json({ authenticated: true, userId: req.session.userId });
+  } else {
+    res.json({ authenticated: false });
+  }
+});
+
 /**
  * await fetch("/api/login", {
   method: "POST",
